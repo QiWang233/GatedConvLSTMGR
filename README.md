@@ -1,2 +1,2 @@
 # GatedConvLSTMGR
- Gesture recognize
+ gesture recognize
