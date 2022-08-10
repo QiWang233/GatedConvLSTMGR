@@ -1,4 +1,6 @@
 E:\pycharm\PycharmProjects\GatedConvLSTMGR\datasets\C00S0001A20 32 0
 E:\pycharm\PycharmProjects\GatedConvLSTMGR\datasets\C00S0001A40 32 0
-E:\pycharm\PycharmProjects\GatedConvLSTMGR\datasets\C00S0002A10 32 0
 E:\pycharm\PycharmProjects\GatedConvLSTMGR\datasets\C00S0002A20 32 0
+E:\pycharm\PycharmProjects\GatedConvLSTMGR\datasets\C00S0002A30 32 0
+E:\pycharm\PycharmProjects\GatedConvLSTMGR\datasets\C00S0002A40 32 0
+E:\pycharm\PycharmProjects\GatedConvLSTMGR\datasets\C02S0001A30 32 2
