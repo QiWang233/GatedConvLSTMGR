@@ -5,6 +5,7 @@
 # @Author : @white233
 import os
 import random
+from enum import Enum
 
 import numpy as np
 
@@ -12,22 +13,18 @@ Windows = 0
 Ubuntu = 1
 device = Windows
 
+train_list_path = "train_depth_list.txt"
+test_list_path = "test_depth_list.txt"
+valid_list_path = "valid_depth_list.txt"
+
 if device == Windows:
     Alldata_path_out_files = "E:\\pycharm\\PycharmProjects\\GatedConvLSTMGR"
     Alldata_path_in_files = "dataset_splits\\DiyGD"
-
-    train_list_path = "train_depth_list.txt"
-    test_list_path = "test_depth_list.txt"
-    valid_list_path = "valid_depth_list.txt"
 
     data_root = os.path.join(os.getcwd(), "datasets")
 else:
     Alldata_path_out_files = "/home/wq"
     Alldata_path_in_files = "GatedConvLSTM/dataset_splits/DiyGD"
-
-    train_list_path = "train_depth_list.txt"
-    test_list_path = "test_depth_list.txt"
-    valid_list_path = "valid_depth_list.txt"
 
     data_root = os.path.join(Alldata_path_out_files, 'dataset')
 
@@ -39,13 +36,105 @@ video_list = os.listdir(data_root)
 video_num = len(video_list)
 print(video_num * test_percent)
 
+split_way = {"head": 10,
+             "tail": 20,
+             "head_tail": 30,
+             "whole_body": 40,
+             # "slow_gs": 5,
+             }
 
-#   write to txt
-def Generate_diy_video_list():
-    assert os.path.exists(os.path.join(Alldata_path_out_files, Alldata_path_in_files)), "路径错误"
+
+def Split_list_with_diff_way(txt_list_path, way, out_list_path):
+    """Split data in different way by C__S__A___"""
+    assert os.path.exists(txt_list_path), "txt 路径不存在！！"
+
+    txt_file_io = open(txt_list_path, 'r')
+    out_list_path_io = open(out_list_path, 'w')
+
+    out_list_path_io.seek(0)  # 定位
+    out_list_path_io.truncate()  # 清空文件
+    f_lines = txt_file_io.readlines()
+    txt_file_io.close()
+
+    for line in f_lines:
+        if int(line.split(' ')[0].split('/')[4].split('A')[1]) == way:
+            out_list_path_io.write(line)
+        elif int(line.split(' ')[0].split('/')[4].split('A')[1][0]) == way:
+            out_list_path_io.write(line)
+
+    out_list_path_io.close()
+
+
+def Split_list_into_rvt(txt_list_path, out_list_path, way):
+    """split special txt data into train/valid/test"""
+    assert os.path.exists(txt_list_path), "txt 路径不存在！！"
+
+    txt_list_io = open(txt_list_path, 'r')
+    f_lines = txt_list_io.readlines()
+    line_num = len(f_lines)
+    txt_list_io.close()
+
+    train_list_path_here = "%s_train_depth_list.txt" % way
+    test_list_path_here = "%s_test_depth_list.txt" % way
+    valid_list_path_here = "%s_valid_depth_list.txt" % way
+
+    train_list_file = os.path.join(out_list_path, train_list_path_here)
+    test_list_file = os.path.join(out_list_path, test_list_path_here)
+    valid_list_file = os.path.join(out_list_path, valid_list_path_here)
+    train_file_io = open(train_list_file, 'w')
+    test_file_io = open(test_list_file, 'w')
+    valid_file_io = open(valid_list_file, 'w')
+
+    train_file_io.seek(0)  # 定位
+    train_file_io.truncate()  # 清空文件
+    test_file_io.seek(0)  # 定位
+    test_file_io.truncate()  # 清空文件
+    valid_file_io.seek(0)  # 定位
+    valid_file_io.truncate()  # 清空文件
+
+    test_list = random.sample(f_lines, k=int(line_num * test_percent))
+    f_lines2 = [x for x in f_lines if x not in test_list]
+    valid_list = random.sample(f_lines2, k=int(line_num * valid_percent))
+    train_list = [x for x in f_lines2 if x not in valid_list]
+
+    for line in f_lines:
+        if line in train_list:
+            train_file_io.write(line)
+        elif line in valid_list:
+            valid_file_io.write(line)
+        elif line in test_list:
+            test_file_io.write(line)
+
+    train_file_io.close()
+    test_file_io.close()
+    valid_file_io.close()
+
+
+def Generate_diy_video_list(out_path, video_ls):
+    """connect the list and list in the txt"""
     video_data = {}
     video_label = []
+    out_file = open(out_path, 'w')
+    for idx, line in enumerate(video_ls):
+        video_key = '%06d' % idx
+        video_path = os.path.join(data_root, str(line))
+        video_data[video_key] = {}
+        video_data[video_key]['videopath'] = video_path
+        video_data[video_key]['framecnt'] = len(os.listdir(os.path.join(video_path, 'leapImg')))
+        video_label_single = int(line[1:3])
+        video_label.append(video_label_single)
+        out_file.write(video_data[video_key]['videopath'] + ' '
+                       + str(video_data[video_key]['framecnt']) + ' '
+                       + str(video_label_single) + '\n')
+    out_file.close()
+
+
+def All_diy_video_list_split():
+    """read && make video list into train/valid/test.txt three part together"""
     out_file_root = os.path.join(Alldata_path_out_files, Alldata_path_in_files)
+    assert os.path.exists(out_file_root), "路径错误"
+    video_data = {}
+    video_label = []
 
     train_list_file = os.path.join(out_file_root, train_list_path)
     test_list_file = os.path.join(out_file_root, test_list_path)
@@ -86,4 +175,22 @@ def Generate_diy_video_list():
     valid_file_os.close()
 
 
-Generate_diy_video_list()
+if __name__ == '__main__':
+    # Generate_diy_video_list(out_path=)
+
+    # WAY = split_way["slow_gs"]
+    #
+    for i in [value for value in split_way.values()]:
+        Split_list_into_rvt("E:\\pycharm\\PycharmProjects\\GatedConvLSTMGR\\dataset_splits\\DiyGD\\%s_depth_list.txt" % i,
+                            "E:\\pycharm\\PycharmProjects\\GatedConvLSTMGR\\dataset_splits\\DiyGD", i)
+
+    # for i in [value for value in split_way.values()]:
+    #     with open('E:\\pycharm\\PycharmProjects\\GatedConvLSTMGR\\dataset_splits\\DiyGD\\5_depth_list.txt', 'r') as text:
+    #         with open('E:\\pycharm\\PycharmProjects\\GatedConvLSTMGR\\dataset_splits\\DiyGD\\%d_depth_list.txt' % i, 'a') as txt:
+    #             txt.writelines(text.readlines())
+
+
+    # with open('E:\\pycharm\\PycharmProjects\\GatedConvLSTMGR\\dataset_splits\\DiyGD\\5_depth_list.txt', 'r') as text:
+    #     with open('E:\\pycharm\\PycharmProjects\\GatedConvLSTMGR\\dataset_splits\\DiyGD\\10_depth_list.txt', 'a') as txt:
+    #         txt.writelines(text.readlines())
+

@@ -1,1 +1,0 @@
-E:\pycharm\PycharmProjects\GatedConvLSTMGR\datasets\C00S0002A10 32 0
