@@ -6,7 +6,8 @@
 import os
 import random
 from enum import Enum
-
+import argparse
+import time
 import numpy as np
 
 Windows = 0
@@ -40,12 +41,12 @@ split_way = {"head": 10,
              "tail": 20,
              "head_tail": 30,
              "whole_body": 40,
-             # "slow_gs": 5,
+             "slow_gs": 5,
              }
 
 
 def Split_list_with_diff_way(txt_list_path, way, out_list_path):
-    """Split data in different way by C__S__A___"""
+    """Split data in different way by C__S__Axx"""
     assert os.path.exists(txt_list_path), "txt 路径不存在！！"
 
     txt_file_io = open(txt_list_path, 'r')
@@ -65,7 +66,7 @@ def Split_list_with_diff_way(txt_list_path, way, out_list_path):
     out_list_path_io.close()
 
 
-def Split_list_into_rvt(txt_list_path, out_list_path, way):
+def Split_list_into_rvt(txt_list_path, out_list_path, way, if_clear=True):
     """split special txt data into train/valid/test"""
     assert os.path.exists(txt_list_path), "txt 路径不存在！！"
 
@@ -85,12 +86,13 @@ def Split_list_into_rvt(txt_list_path, out_list_path, way):
     test_file_io = open(test_list_file, 'w')
     valid_file_io = open(valid_list_file, 'w')
 
-    train_file_io.seek(0)  # 定位
-    train_file_io.truncate()  # 清空文件
-    test_file_io.seek(0)  # 定位
-    test_file_io.truncate()  # 清空文件
-    valid_file_io.seek(0)  # 定位
-    valid_file_io.truncate()  # 清空文件
+    if if_clear:
+        train_file_io.seek(0)  # 定位
+        train_file_io.truncate()  # 清空文件
+        test_file_io.seek(0)  # 定位
+        test_file_io.truncate()  # 清空文件
+        valid_file_io.seek(0)  # 定位
+        valid_file_io.truncate()  # 清空文件
 
     test_list = random.sample(f_lines, k=int(line_num * test_percent))
     f_lines2 = [x for x in f_lines if x not in test_list]
@@ -108,6 +110,7 @@ def Split_list_into_rvt(txt_list_path, out_list_path, way):
     train_file_io.close()
     test_file_io.close()
     valid_file_io.close()
+    print("separate %s into rvt" % txt_list_path)
 
 
 def Generate_diy_video_list(out_path, video_ls):
@@ -175,22 +178,107 @@ def All_diy_video_list_split():
     valid_file_os.close()
 
 
+def Mix_list_into_rvt(txt_list_path_root, proportion, out_txt_name):
+    """proportion : 8_1_1  or 3_5_1_1 ...."""
+    txt_file_list = [way for way in str(proportion).split(',')[0].split('_')]
+    proportion_list = [way for way in str(proportion).split(',')[1].split('_')]
+    print(txt_file_list)
+    # print(proportion_list)
+
+    proportion_list = [float(proportion) for proportion in proportion_list]
+    proportion_sum = sum(proportion_list)
+    proportion_list = [float(proportion / proportion_sum) for proportion in proportion_list]
+    print(proportion_list)
+
+    out_io = open(os.path.join(txt_list_path_root, out_txt_name), 'w')
+    out_io.seek(0)  # 定位
+    out_io.truncate()  # 清空文件
+
+    origin_file_io = {}
+    f_origin_file_io = {}
+    all_prefix = {}
+    for idx, way in enumerate(txt_file_list):
+        origin_file_io[idx] = open(os.path.join(txt_list_path_root, '%s_origin_depth_list.txt' % way), 'r')
+        f_origin_file_io[idx] = origin_file_io[idx].readlines()
+        all_prefix[idx] = []
+        origin_file_io[idx].close()
+    num_for_all = len(f_origin_file_io[0])
+    print('10_origin_depth_list.txt_num:%d ' % num_for_all)
+    # print(all_prefix)
+    total_prefix = []
+    recovery_list = {}
+    for i in range(0, num_for_all):
+        total_prefix.append(f_origin_file_io[0][i].split(' ')[0].split('/')[4].split('A')[0])
+    print(len(total_prefix))
+
+    for t in range(0, len(txt_file_list)):
+        if t != 0:
+            for x in all_prefix[t - 1]:
+                if x in total_prefix:
+                    total_prefix.remove(x)
+        print('%d:%d' % (t, len(total_prefix)))
+
+        if t == len(txt_file_list) - 1:
+            all_prefix[t] = total_prefix
+        else:
+            all_prefix[t] = random.sample(total_prefix, k=int(num_for_all * proportion_list[t]))
+            print(num_for_all * proportion_list[t], int(num_for_all * proportion_list[t]), len(all_prefix[t]))
+
+        recovery_list[t] = [s + 'A%s' % txt_file_list[t] for s in all_prefix[t]]
+
+        for single in recovery_list[t]:
+            out_io.write('/home/wq/dataset' + '/' + single + ' 32 ' + single[2:3] + '\n')
+    out_io.close()
+
+    copy_txt('E:\\pycharm\\PycharmProjects\\GatedConvLSTMGR\\dataset_splits\\DiyGD\\5_depth_list.txt',
+             'E:\\pycharm\\PycharmProjects\\GatedConvLSTMGR\\dataset_splits\\DiyGD\\%s_mix_depth_list.txt' %
+             str(proportion).split(',')[0]
+             )
+
+    Split_list_into_rvt(os.path.join(txt_list_path_root, out_txt_name), txt_list_path_root,
+                        str(proportion).split(',')[0])
+
+
+def copy_txt(a, b):
+    text = open(a, 'r')
+    txt = open(b, 'a')
+    text.seek(0)
+    f = text.readlines()
+    for line in f:
+        txt.write(line)
+    txt.close()
+    text.close()
+
+
 if __name__ == '__main__':
-    # Generate_diy_video_list(out_path=)
-
     # WAY = split_way["slow_gs"]
-    #
-    for i in [value for value in split_way.values()]:
-        Split_list_into_rvt("E:\\pycharm\\PycharmProjects\\GatedConvLSTMGR\\dataset_splits\\DiyGD\\%s_depth_list.txt" % i,
-                            "E:\\pycharm\\PycharmProjects\\GatedConvLSTMGR\\dataset_splits\\DiyGD", i)
 
-    # for i in [value for value in split_way.values()]:
-    #     with open('E:\\pycharm\\PycharmProjects\\GatedConvLSTMGR\\dataset_splits\\DiyGD\\5_depth_list.txt', 'r') as text:
-    #         with open('E:\\pycharm\\PycharmProjects\\GatedConvLSTMGR\\dataset_splits\\DiyGD\\%d_depth_list.txt' % i, 'a') as txt:
-    #             txt.writelines(text.readlines())
+    parser = argparse.ArgumentParser(description='split data way')
+    parser.add_argument('--wp', type=str, help='such as \'10_20_30,3_2_5\'')
+    args = parser.parse_args()
 
+    Mix_list_into_rvt('E:\\pycharm\\PycharmProjects\\GatedConvLSTMGR\\dataset_splits\\DiyGD', args.wp,
+                      '%s_mix_depth_list.txt' % (str(args.wp).split(',')[0]))
 
     # with open('E:\\pycharm\\PycharmProjects\\GatedConvLSTMGR\\dataset_splits\\DiyGD\\5_depth_list.txt', 'r') as text:
-    #     with open('E:\\pycharm\\PycharmProjects\\GatedConvLSTMGR\\dataset_splits\\DiyGD\\10_depth_list.txt', 'a') as txt:
+    #     with open('E:\\pycharm\\PycharmProjects\\GatedConvLSTMGR\\dataset_splits\\DiyGD\\mix_depth_list.txt', 'a') as txt:
     #         txt.writelines(text.readlines())
 
+    # for i in [value for value in split_way.values()]:
+    #     Split_list_with_diff_way(
+    #         "E:\\pycharm\\PycharmProjects\\GatedConvLSTMGR\\dataset_splits\\DiyGD\\all_depth_list.txt",
+    #         i, "E:\\pycharm\\PycharmProjects\\GatedConvLSTMGR\\dataset_splits\\DiyGD"
+    #            "\\%d_origin_depth_list.txt" % i)
+
+    # for i in [value for value in split_way.values()]: Split_list_into_rvt(
+    # "E:\\pycharm\\PycharmProjects\\GatedConvLSTMGR\\dataset_splits\\DiyGD\\%s_depth_list.txt" % i,
+    # "E:\\pycharm\\PycharmProjects\\GatedConvLSTMGR\\dataset_splits\\DiyGD", i)
+
+    # for i in [value for value in split_way.values()]: with open(
+    # 'E:\\pycharm\\PycharmProjects\\GatedConvLSTMGR\\dataset_splits\\DiyGD\\5_depth_list.txt', 'r') as text: with
+    # open('E:\\pycharm\\PycharmProjects\\GatedConvLSTMGR\\dataset_splits\\DiyGD\\%d_depth_list.txt' % i,
+    # 'a') as txt: txt.writelines(text.readlines())
+
+    # with open('E:\\pycharm\\PycharmProjects\\GatedConvLSTMGR\\dataset_splits\\DiyGD\\5_depth_list.txt',
+    # 'r') as text: with open('E:\\pycharm\\PycharmProjects\\GatedConvLSTMGR\\dataset_splits\\DiyGD\\10_depth_list
+    # .txt', 'a') as txt: txt.writelines(text.readlines())

@@ -6,13 +6,22 @@
 
 import numpy as np
 import tensorflow as tf
-
+import os
 import networks.inputs as data
 from networks.res3d_clstm_mobilenet import res3d_clstm_mobilenet
 from networks.callbacks import LearningRateScheduler
 from networks.datagen import DiyGesTrainImageGenerator, DiyGesTestImageGenerator
 from tensorflow.python.keras import layers, models, regularizers
 from tensorflow.python.keras.callbacks import ModelCheckpoint, ReduceLROnPlateau
+
+import argparse
+
+parser = argparse.ArgumentParser(description='train model way')
+parser.add_argument('--way', type=int, default=10, help='value may like head=10,tail=20,head_tail=30,whole_body=40')
+parser.add_argument('--gpu', type=str, default='0', help='--gpu \'0\' or \'1\'')
+args = parser.parse_args()
+
+os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
 
 l2 = regularizers.l2
 
@@ -61,9 +70,11 @@ elif cfg_dataset == DIYGD:
     seq_len = 32
     batch_size = 2
     num_classes = 8
-    dataset_name = 'diygr_%s' % str_modality
-    training_datalist = './dataset_splits/DiyGD/train_%s_list.txt' % str_modality
-    testing_datalist = './dataset_splits/DiyGD/test_%s_list.txt' % str_modality
+
+    dataset_name = '%d_diygr_%s' % (args.way, str_modality)
+
+    training_datalist = './dataset_splits/DiyGD/%d_train_%s_list.txt' % (args.way, str_modality)
+    testing_datalist = './dataset_splits/DiyGD/%d_valid_%s_list.txt' % (args.way, str_modality)
 else:
     nb_epoch = 0
     init_epoch = 0
@@ -75,7 +86,7 @@ else:
     testing_datalist = None
 
 weight_decay = 0.00005
-model_prefix = 'E:/pycharm/PycharmProjects/GatedConvLSTMGR/models'
+model_prefix = '/home/wq/GatedConvLSTM/models'
 
 inputs = layers.Input(shape=(seq_len, 112, 112, 1), batch_size=batch_size)
 feature = res3d_clstm_mobilenet(inputs, seq_len, weight_decay)

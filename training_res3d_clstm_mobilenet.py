@@ -4,6 +4,7 @@
 # @Software: PyCharm
 # @Author : @white233
 
+import os
 import numpy as np
 import tensorflow as tf
 
@@ -13,6 +14,15 @@ from networks.callbacks import LearningRateScheduler
 from networks.datagen import DiyGesTrainImageGenerator, DiyGesTestImageGenerator
 from tensorflow.python.keras import layers, models, regularizers
 from tensorflow.python.keras.callbacks import ModelCheckpoint, ReduceLROnPlateau
+import argparse
+
+parser = argparse.ArgumentParser(description='train model way')
+parser.add_argument('--way', type=int, default=10, help='value may like head=10,tail=20,head_tail=30,whole_body=40')
+parser.add_argument('--gpu', type=str, default='0', help='--gpu \'0\' or \'1\'')
+args = parser.parse_args()
+
+os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
+print('CUDA_VISIBLE_DEVICES==' + args.gpu)
 
 l2 = regularizers.l2
 
@@ -61,9 +71,11 @@ elif cfg_dataset == DIYGD:
     seq_len = 32
     batch_size = 2
     num_classes = 8
-    dataset_name = 'diygr_%s' % str_modality
-    training_datalist = './dataset_splits/DiyGD/train_%s_list.txt' % str_modality
-    testing_datalist = './dataset_splits/DiyGD/valid_%s_list.txt' % str_modality
+    dataset_name = '%d_diygr_%s' % (args.way, str_modality)
+
+    training_datalist = './dataset_splits/DiyGD/%d_train_%s_list.txt' % (args.way, str_modality)
+    testing_datalist = './dataset_splits/DiyGD/%d_valid_%s_list.txt' % (args.way, str_modality)
+
 else:
     nb_epoch = 0
     init_epoch = 0
