@@ -9,3 +9,5 @@ networks/__pycache__/inputs.cpython-36.pyc
 networks/__pycache__/inputs.cpython-36.pyc
 *.h5
 *.pyc
+*.txt
+*.txt

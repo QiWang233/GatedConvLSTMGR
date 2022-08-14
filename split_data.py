@@ -230,13 +230,19 @@ def Mix_list_into_rvt(txt_list_path_root, proportion, out_txt_name):
             out_io.write('/home/wq/dataset' + '/' + single + ' 32 ' + single[2:3] + '\n')
     out_io.close()
 
-    copy_txt('E:\\pycharm\\PycharmProjects\\GatedConvLSTMGR\\dataset_splits\\DiyGD\\5_depth_list.txt',
-             'E:\\pycharm\\PycharmProjects\\GatedConvLSTMGR\\dataset_splits\\DiyGD\\%s_mix_depth_list.txt' %
-             str(proportion).split(',')[0]
-             )
+    if device == Windows:
+        copy_txt(os.path.join(Alldata_path_out_files, 'dataset_splits\\DiyGD\\5_depth_list.txt'),
+                 'E:\\pycharm\\PycharmProjects\\GatedConvLSTMGR\\dataset_splits\\DiyGD\\%s_mix_depth_list.txt' %
+                 (str(proportion).split(',')[0] + '_' + str(proportion).split(',')[1])
+                 )
+    else:
+        copy_txt(os.path.join(os.path.join(Alldata_path_out_files, Alldata_path_in_files), '5_depth_list.txt'),
+                 os.path.join(os.path.join(Alldata_path_out_files, Alldata_path_in_files), '%s_mix_depth_list.txt') %
+                 (str(proportion).split(',')[0] + '_' + str(proportion).split(',')[1])
+                 )
 
     Split_list_into_rvt(os.path.join(txt_list_path_root, out_txt_name), txt_list_path_root,
-                        str(proportion).split(',')[0])
+                        str(proportion).split(',')[0] + '_' + str(proportion).split(',')[1])
 
 
 def copy_txt(a, b):
@@ -257,8 +263,12 @@ if __name__ == '__main__':
     parser.add_argument('--wp', type=str, help='such as \'10_20_30,3_2_5\'')
     args = parser.parse_args()
 
-    Mix_list_into_rvt('E:\\pycharm\\PycharmProjects\\GatedConvLSTMGR\\dataset_splits\\DiyGD', args.wp,
-                      '%s_mix_depth_list.txt' % (str(args.wp).split(',')[0]))
+    if device == Windows:
+        Mix_list_into_rvt(os.path.join(Alldata_path_out_files, Alldata_path_in_files), args.wp,
+                          '%s_mix_depth_list.txt' % (str(args.wp).split(',')[0] + '_' + str(args.wp).split(',')[1]))
+    else:
+        Mix_list_into_rvt(os.path.join(Alldata_path_out_files, Alldata_path_in_files), args.wp,
+                          '%s_mix_depth_list.txt' % (str(args.wp).split(',')[0] + '_' + str(args.wp).split(',')[1]))
 
     # with open('E:\\pycharm\\PycharmProjects\\GatedConvLSTMGR\\dataset_splits\\DiyGD\\5_depth_list.txt', 'r') as text:
     #     with open('E:\\pycharm\\PycharmProjects\\GatedConvLSTMGR\\dataset_splits\\DiyGD\\mix_depth_list.txt', 'a') as txt:

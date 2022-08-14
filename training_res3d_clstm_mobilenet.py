@@ -17,7 +17,7 @@ from tensorflow.python.keras.callbacks import ModelCheckpoint, ReduceLROnPlateau
 import argparse
 
 parser = argparse.ArgumentParser(description='train model way')
-parser.add_argument('--way', type=int, default=10, help='value may like head=10,tail=20,head_tail=30,whole_body=40')
+parser.add_argument('--way', type=str, default=10, help='value may like head=10,tail=20,head_tail=30,whole_body=40')
 parser.add_argument('--gpu', type=str, default='0', help='--gpu \'0\' or \'1\'')
 args = parser.parse_args()
 
@@ -71,10 +71,10 @@ elif cfg_dataset == DIYGD:
     seq_len = 32
     batch_size = 2
     num_classes = 8
-    dataset_name = '%d_diygr_%s' % (args.way, str_modality)
+    dataset_name = '%s_diygr_%s' % (args.way, str_modality)
 
-    training_datalist = './dataset_splits/DiyGD/%d_train_%s_list.txt' % (args.way, str_modality)
-    testing_datalist = './dataset_splits/DiyGD/%d_valid_%s_list.txt' % (args.way, str_modality)
+    training_datalist = './dataset_splits/DiyGD/%s_train_%s_list.txt' % (args.way, str_modality)
+    testing_datalist = './dataset_splits/DiyGD/%s_valid_%s_list.txt' % (args.way, str_modality)
 
 else:
     nb_epoch = 0
@@ -85,6 +85,7 @@ else:
     dataset_name = None
     training_datalist = None
     testing_datalist = None
+
 
 weight_decay = 0.00005
 model_prefix = './models'
