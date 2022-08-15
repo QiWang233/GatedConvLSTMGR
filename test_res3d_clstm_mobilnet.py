@@ -74,7 +74,7 @@ elif cfg_dataset == DIYGD:
     dataset_name = '%d_diygr_%s' % (args.way, str_modality)
 
     training_datalist = './dataset_splits/DiyGD/%d_train_%s_list.txt' % (args.way, str_modality)
-    testing_datalist = './dataset_splits/DiyGD/%d_valid_%s_list.txt' % (args.way, str_modality)
+    testing_datalist = './dataset_splits/DiyGD/%d_test_%s_list.txt' % (args.way, str_modality)
 else:
     nb_epoch = 0
     init_epoch = 0
@@ -98,7 +98,8 @@ model = models.Model(inputs=inputs, outputs=outputs)
 optimizer = tf.keras.optimizers.SGD(lr=0.001, decay=0.0, momentum=0.9, nesterov=False)
 model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
 
-pretrained_model = '%s/diygr_%s_gatedclstm_weights.h5' % (model_prefix, str_modality)
+pretrained_model = '%s/diygr_%s_gatedclstm_weights.h5' % (model_prefix)
+# pretrained_model = '%s/diygr_%s_gatedclstm_weights.h5' % (model_prefix, str_modality)
 print('Loading pretrained model from %s' % pretrained_model)
 model.load_weights(pretrained_model, by_name=False)
 for i in range(len(model.trainable_weights)):
