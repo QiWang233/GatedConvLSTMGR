@@ -98,8 +98,7 @@ model = models.Model(inputs=inputs, outputs=outputs)
 optimizer = tf.keras.optimizers.SGD(lr=0.001, decay=0.0, momentum=0.9, nesterov=False)
 model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
 
-pretrained_model = '%s/diygr_%s_gatedclstm_weights.h5' % (model_prefix)
-# pretrained_model = '%s/diygr_%s_gatedclstm_weights.h5' % (model_prefix, str_modality)
+pretrained_model = '%s/diygr_%s_gatedclstm_weights.h5' % (model_prefix, str_modality)
 print('Loading pretrained model from %s' % pretrained_model)
 model.load_weights(pretrained_model, by_name=False)
 for i in range(len(model.trainable_weights)):
@@ -108,5 +107,7 @@ for i in range(len(model.trainable_weights)):
 _, test_labels = data.load_diy_video_list(testing_datalist)
 test_steps = len(test_labels) / batch_size
 
-print(model.evaluate_generator(DiyGesTestImageGenerator(testing_datalist, batch_size, seq_len, num_classes,
-                                                        cfg_modality), steps=test_steps))
+print(model.evaluate(DiyGesTestImageGenerator(testing_datalist, batch_size, seq_len, num_classes,
+                                              cfg_modality), steps=test_steps))
+model.predict_generator(DiyGesTestImageGenerator(testing_datalist, batch_size, seq_len, num_classes,
+                                              cfg_modality), steps=test_steps)

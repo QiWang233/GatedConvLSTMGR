@@ -46,7 +46,9 @@ split_way = {"head": 10,
 
 
 def Split_list_with_diff_way(txt_list_path, way, out_list_path):
-    """Split data in different way by C__S__Axx"""
+    """
+    Split data in different way by C__S__Axx
+    """
     assert os.path.exists(txt_list_path), "txt 路径不存在！！"
 
     txt_file_io = open(txt_list_path, 'r')
@@ -67,7 +69,9 @@ def Split_list_with_diff_way(txt_list_path, way, out_list_path):
 
 
 def Split_list_into_rvt(txt_list_path, out_list_path, way, if_clear=True):
-    """split special txt data into train/valid/test"""
+    """
+    split special txt data into train/valid/test
+    """
     assert os.path.exists(txt_list_path), "txt 路径不存在！！"
 
     txt_list_io = open(txt_list_path, 'r')
@@ -114,7 +118,9 @@ def Split_list_into_rvt(txt_list_path, out_list_path, way, if_clear=True):
 
 
 def Generate_diy_video_list(out_path, video_ls):
-    """connect the list and list in the txt"""
+    """
+    connect the list and list in the txt
+    """
     video_data = {}
     video_label = []
     out_file = open(out_path, 'w')
@@ -133,7 +139,9 @@ def Generate_diy_video_list(out_path, video_ls):
 
 
 def All_diy_video_list_split():
-    """read && make video list into train/valid/test.txt three part together"""
+    """
+    read && make video list into train/valid/test.txt three part together
+    """
     out_file_root = os.path.join(Alldata_path_out_files, Alldata_path_in_files)
     assert os.path.exists(out_file_root), "路径错误"
     video_data = {}
@@ -179,7 +187,9 @@ def All_diy_video_list_split():
 
 
 def Mix_list_into_rvt(txt_list_path_root, proportion, out_txt_name):
-    """proportion : 8_1_1  or 3_5_1_1 ...."""
+    """
+    proportion : 8_1_1  or 3_5_1_1 ....
+    """
     txt_file_list = [way for way in str(proportion).split(',')[0].split('_')]
     proportion_list = [way for way in str(proportion).split(',')[1].split('_')]
     print(txt_file_list)
@@ -292,3 +302,4 @@ if __name__ == '__main__':
     # with open('E:\\pycharm\\PycharmProjects\\GatedConvLSTMGR\\dataset_splits\\DiyGD\\5_depth_list.txt',
     # 'r') as text: with open('E:\\pycharm\\PycharmProjects\\GatedConvLSTMGR\\dataset_splits\\DiyGD\\10_depth_list
     # .txt', 'a') as txt: txt.writelines(text.readlines())
+x= np.zeros()
